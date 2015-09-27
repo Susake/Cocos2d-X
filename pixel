@@ -1,0 +1,70 @@
+#include "HelloWorldScene.h"
+
+USING_NS_CC;
+
+Scene* HelloWorld::createScene()
+{
+    // 'scene' is an autorelease object
+    auto scene = Scene::create();
+    
+    // 'layer' is an autorelease object
+    auto layer = HelloWorld::create();
+
+    // add layer as a child to scene
+    scene->addChild(layer);
+
+    // return the scene
+    return scene;
+}
+
+// on "init" you need to initialize your instance
+bool HelloWorld::init()
+{
+    //////////////////////////////
+    // 1. super init first
+    if ( !Layer::init() )
+    {
+        return false;
+    }
+    
+    Size visibleSize = Director::getInstance()->getVisibleSize();
+    Vec2 origin = Director::getInstance()->getVisibleOrigin();
+
+    /////////////////////////////
+    // 3. add your codes below...
+
+    // add "HelloWorld" splash screen"
+    auto sprite = Sprite::create("HelloWorld.png");
+
+    // position the sprite on the center of the screen
+    sprite->setPosition(Vec2(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
+
+    // add the sprite as a child to this layer
+    this->addChild(sprite, 0);
+
+	float scaleFactor = CCDirector::sharedDirector()->getContentScaleFactor();
+	auto listener = EventListenerTouchOneByOne::create();
+	listener->onTouchBegan = [=](Touch * touch, Event* event) {
+		auto pointLocation = touch->getLocation();
+		if (sprite->getBoundingBox().containsPoint(pointLocation)) {
+			auto point = sprite->convertToNodeSpace(touch->getLocation());
+			unsigned int x = point.x * scaleFactor, y = (sprite->getContentSize().height - point.y) * scaleFactor;
+			Color4B c = { 0, 0, 0, 0 };
+			auto img = new Image();
+			img->initWithImageFile(CCFileUtils::getInstance()->fullPathForFilename("HelloWorld.png"));
+			unsigned char *data_ = img->getData();
+			unsigned int *pixel = (unsigned int *)data_;
+			pixel = pixel + (y *(int)(sprite->getContentSize().height*scaleFactor)) + x;
+			c.r = *pixel & 0xff;
+			c.g = (*pixel >> 8) & 0xff;
+			c.b = (*pixel >> 16) & 0xff;
+			c.a = (*pixel >> 24) & 0xff;
+			if (c.a == 0) { return false; }
+			else { return true; }
+		}
+		return true;
+	};
+	_eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+    
+    return true;
+}
